@@ -123,6 +123,10 @@ int outAbanico3 = 25; // High if Temperature > 33�, Low if Temperature < 31�
 
 int outControlGprs = 49;
 
+// Reference values
+int maxTemp = 100, minTemp = 0,
+    maxHum = 100, minHum = 0,
+    maxAir = 1000;
 //String number="3003162831";
 
 // Default States
@@ -149,7 +153,7 @@ void setup() {
   dht.begin();  // Iniciaqndo DTH11
   Wire.begin();  // Comunicacion por un cabe RTC
   serialGPRS.begin(19200); // the GPRS baud rate
-  
+
   delay(500);
 
   pinMode(led_fallos, OUTPUT); // Salida led fallos sensores
@@ -428,9 +432,9 @@ void loop() {
   Buttonslcd();
   //Serial.println(" ");
   SendJson();
-  
+
   readData ();
-  
+
   //Llamada_cel();
   /*
     if(cycleNumber==10){
@@ -519,13 +523,13 @@ void SendJson() {
 }
 
 void readData () {
-  
+
   if (Serial.available() > 0) {
 
     str = Serial.readStringUntil('\n');
     //str = Serial.readString();
-    Serial.println(str);
-    
+    //Serial.println(str);
+
     DynamicJsonBuffer jsonBuffer(bufferSizeRead);
 
     JsonObject& root = jsonBuffer.parseObject(str);
@@ -535,14 +539,15 @@ void readData () {
     int maxHum = root["aH"];
     int minHum = root["iH"];
     int maxAir = root["aA"];
-    
+
     JsonArray& actuators = root["A"];
-    
+
     int light = actuators[0];
     int fan = actuators[1];
     int actuators2 = actuators[2];
     int actuators3 = actuators[3];
 
+/*
     Serial.println(maxTemp);
     Serial.println(minTemp);
     Serial.println(maxHum);
@@ -553,18 +558,18 @@ void readData () {
     Serial.println(fan);
     Serial.println(actuators2);
     Serial.println(actuators3);
-    
+*/
     //String data = Serial.readStringUntil('\n');
     //DEBUG(data);
-   /* for (int i = 0; i < dataLength ; i++) {
-      int index = str.indexOf(separator);
-      data[i] = str.substring(0, index).toInt();
-      str = str.substring(index + 1);
-    }*/
+    /* for (int i = 0; i < dataLength ; i++) {
+       int index = str.indexOf(separator);
+       data[i] = str.substring(0, index).toInt();
+       str = str.substring(index + 1);
+      }*/
     //DEBUG_ARRAY(data);
     //Serial.println(data[0]);
     //Serial.println(data[1]);
-    
+
     //int lightVariable = data[0];
     //int fanVariable = data[1];
 
@@ -573,7 +578,7 @@ void readData () {
       digitalWrite(autoAbanico, HIGH);
       Actuadores_final();
       abanico_ON = true;
-    } 
+    }
 
     if (fan == 0 && abanico_ON == true) {
       Abanico_OFF();
@@ -597,7 +602,7 @@ void readData () {
       Actuadores_final();
       luz_ON = false;
     }
-    
+
   }
 
 }
