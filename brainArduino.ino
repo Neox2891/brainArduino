@@ -51,6 +51,13 @@ int temporaltemperature[4];
 int temporalhumidity[4];
 int temporalammonia[4];
 
+// Valores maximos y minimos de referencia - 100 por defecto 
+int maxTemp = 100;
+int minTemp = 100;
+int maxHum = 100;
+int minHum = 100;
+int maxAir = 1000;
+
 // Almacenamiento de Entradas de datos
 int temperature[4]; // Port A0 IN
 int humidity[4]; // Port A0 IN
@@ -123,10 +130,6 @@ int outAbanico3 = 25; // High if Temperature > 33�, Low if Temperature < 31�
 
 int outControlGprs = 49;
 
-// Reference values
-int maxTemp = 100, minTemp = 0,
-    maxHum = 100, minHum = 0,
-    maxAir = 1000;
 //String number="3003162831";
 
 // Default States
@@ -433,7 +436,7 @@ void loop() {
   //Serial.println(" ");
   SendJson();
 
-  readData ();
+  readData();
 
   //Llamada_cel();
   /*
@@ -534,11 +537,11 @@ void readData () {
 
     JsonObject& root = jsonBuffer.parseObject(str);
 
-    int maxTemp = root["aT"];
-    int minTemp = root["iT"];
-    int maxHum = root["aH"];
-    int minHum = root["iH"];
-    int maxAir = root["aA"];
+    maxTemp = root["aT"];
+    minTemp = root["iT"];
+    maxHum = root["aH"];
+    minHum = root["iH"];
+    maxAir = root["aA"];
 
     JsonArray& actuators = root["A"];
 
@@ -850,13 +853,13 @@ void Auto_Actuadores() {
 
   //---------- Encender Abanicos temperatura alta--------
 
-  if (temperature[0] > 34 || temperature[1] > 34 || temperature[2] > 34 || temperature[3] > 34)
+  if (temperature[0] > maxTemp || temperature[1] > maxTemp || temperature[2] > maxTemp || temperature[3] > maxTemp)
   {
     if (!Alarms[0]) {
 
-      for (int i = 0; i < modulesCount; ++i)  // Muestra qeu modulo tiene la temperatura alta
+      for (int i = 0; i < modulesCount; ++i)  // Muestra que modulo tiene la temperatura alta
       {
-        if (temperature[i] > 34 ) {
+        if (temperature[i] > maxTemp) {
           lcd.clear();
           lcd.setCursor(0, 0);
           lcd.print("Temperatura Alta"); /// LCD
@@ -877,11 +880,12 @@ void Auto_Actuadores() {
     }
 
   } // .----- FIN if temperatura alta ON
-
+  
+  // Revisa si los sensores estan bien y si la temperatura volvio a su estado normal
   if (temperature[0] > 0 && temperature[1] > 0 && temperature[2] > 0 && temperature[3] > 0) {
 
 
-    if (temperature[0] < 34 && temperature[1] < 34 && temperature[2] < 34 && temperature[3] < 34) {
+    if (temperature[0] < maxTemp && temperature[1] < maxTemp && temperature[2] < maxTemp && temperature[3] < maxTemp) {
 
       if (Alarms[0]) {
 
@@ -1211,7 +1215,7 @@ void amoniaco() {
 
     if (!Alarms[7]) { // If cuando no hay alertas
 
-      if (ammonia[i] > 500) { // Pregunta si hay alertas de Aire contaminado
+      if (ammonia[i] > maxAir) { // Pregunta si hay alertas de Aire contaminado
 
         digitalWrite (outStopAlarm, HIGH);
         delay(500);
@@ -1234,7 +1238,7 @@ void amoniaco() {
         ReadSensor_confir();
 
 
-        if (ammonia[i] > 500) {
+        if (ammonia[i] > maxAir) {
 
           digitalWrite (outStopAlarm, HIGH);
           delay(500);
@@ -1287,7 +1291,7 @@ void temperatura() {
     if (!Alarms[2]) { // If cuando no hay alertas de tempratura
 
 
-      if (temperature[i] >= 38) {
+      if (temperature[i] >= maxTemp) {
 
         lcd.clear();
         lcd.setCursor(0, 0);
@@ -1305,7 +1309,7 @@ void temperatura() {
 
         ReadSensor_confir();
 
-        if (temperature[i] >= 38) {
+        if (temperature[i] >= maxTemp) {
 
 
           lcd.clear();
@@ -1365,7 +1369,7 @@ void humedad() {
     if (!Alarms[1]) {
 
 
-      if (humidity[i] > 70 && humidity[i] < 100) {
+      if (humidity[i] > minHum && humidity[i] < maxHum) {
 
         lcd.clear();
         lcd.setCursor(0, 0);
@@ -1384,7 +1388,7 @@ void humedad() {
         ReadSensor_confir();
 
 
-        if (humidity[i] > 70 && humidity[i] < 100) {
+        if (humidity[i] > minHum && humidity[i] < maxHum) {
 
 
           // Si detecta una alerta debe asegurarse de que sea real. revison del parametro
@@ -1709,7 +1713,7 @@ void confir_alerta () {
     ReadSensor_confir();
 
 
-    if (temperature[0] < 40  && temperature[1] < 40  && temperature[2] < 40  && temperature[3] < 40 && temperature[0] > 0  && temperature[1] > 0 > 0  && temperature[2] > 0  && temperature[3] > 0) {
+    if (temperature[0] < maxTemp  && temperature[1] < maxTemp  && temperature[2] < maxTemp  && temperature[3] < maxTemp && temperature[0] > minTemp  && temperature[1] > minTemp  && temperature[2] > minTemp  && temperature[3] > minTemp) {
 
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -1749,8 +1753,7 @@ void confir_alerta () {
     ReadSensor_confir();
 
 
-    if (ammonia[0] < 800 && ammonia[1] < 800 && ammonia[2] < 800 && ammonia[3] < 800
-        && ammonia[0] > 0 && ammonia[1] > 0 && ammonia[2] > 0 && ammonia[3] > 0) {
+    if (ammonia[0] < maxAir && ammonia[1] < maxAir && ammonia[2] < maxAir && ammonia[3] < maxAir) {
 
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -1787,8 +1790,8 @@ void confir_alerta () {
 
     ReadSensor_confir();
 
-    if (humidity[0] < 70 && humidity[1] < 70 && humidity[2] < 70 && humidity[3] < 70 && humidity[0] > 0
-        && humidity[1] > 0 && humidity[2] > 0 && humidity[3] > 0) {
+    if (humidity[0] < maxHum && humidity[1] < maxHum && humidity[2] < maxHum && humidity[3] < maxHum && humidity[0] > minHum
+        && humidity[1] > minHum && humidity[2] > minHum && humidity[3] > minHum) {
 
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -1809,12 +1812,12 @@ void confir_alerta () {
   //---------- if QUE APAGA EL led
 
   if (rain == HIGH && fire[0] == LOW && fire[1] == LOW && fire[2] == LOW && fire[3] == LOW
-      && temperature[0] < 40  && temperature[1] < 40  && temperature[2] < 40  && temperature[3] < 40
-      && temperature[0] > 0  && temperature[1] > 0 > 0  && temperature[2] > 0  && temperature[3] > 0
-      && ammonia[0] < 800 && ammonia[1] < 800 && ammonia[2] < 800 && ammonia[3] < 800
-      && ammonia[0] > 0 && ammonia[1] > 0 && ammonia[2] > 0 && ammonia[3] > 0 && humidity[0] < 70
-      && humidity[1] < 70 && humidity[2] < 70 && humidity[3] < 70 && humidity[0] > 0 && humidity[1] > 0
-      && humidity[2] > 0 && humidity[3] > 0 && alert_des == true) {
+      && temperature[0] < maxTemp  && temperature[1] < maxTemp && temperature[2] < maxTemp && temperature[3] < maxTemp
+      && temperature[0] > minTemp  && temperature[1] > minTemp && temperature[2] > minTemp && temperature[3] > minTemp
+      && ammonia[0] < maxAir && ammonia[1] < maxAir && ammonia[2] < maxAir && ammonia[3] < maxAir
+      && humidity[0] < maxHum && humidity[1] < maxHum && humidity[2] < maxHum && humidity[3] < maxHum 
+      && humidity[0] > minHum && humidity[1] > minHum && humidity[2] > minHum && humidity[3] > minHum 
+      && alert_des == true) {
 
 
     lcd.clear();
